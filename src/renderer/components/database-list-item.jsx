@@ -26,6 +26,7 @@ const STYLE = {
 export default class DatabaseListItem extends Component {
   static propTypes = {
     client: PropTypes.string.isRequired,
+    schemas: PropTypes.array,
     tables: PropTypes.array,
     columnsByTable: PropTypes.object,
     triggersByTable: PropTypes.object,
@@ -128,6 +129,7 @@ export default class DatabaseListItem extends Component {
     const { filter } = this.state;
     const {
       client,
+      schemas,
       tables,
       columnsByTable,
       triggersByTable,
@@ -140,6 +142,7 @@ export default class DatabaseListItem extends Component {
       onGetSQLScript,
     } = this.props;
 
+    let filteredSchemas;
     let filteredTables;
     let filteredViews;
     let filteredFunctions;
@@ -150,6 +153,7 @@ export default class DatabaseListItem extends Component {
     if (this.state.collapsed || !isMetadataLoaded) {
       cssStyleItems.display = 'none';
     } else {
+      filteredSchemas = this.filterItems(filter, schemas);
       filteredTables = this.filterItems(filter, tables);
       filteredViews = this.filterItems(filter, views);
       filteredFunctions = this.filterItems(filter, functions);
@@ -167,6 +171,12 @@ export default class DatabaseListItem extends Component {
               isFetching={!isMetadataLoaded}
               onFilterChange={::this.onFilterChange} />
           </div>
+          <DatabaseListItemMetatada
+            title="Schemas"
+            client={client}
+            items={filteredSchemas || schemas}
+            database={database}
+           />
           <DatabaseListItemMetatada
             title="Tables"
             client={client}

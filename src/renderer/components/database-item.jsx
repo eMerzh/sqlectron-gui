@@ -62,7 +62,7 @@ export default class DatabaseItem extends Component {
     this.contextMenu.append(new MenuItem({ type: 'separator' }));
 
     const { disabledFeatures } = CLIENTS.find(dbClient => dbClient.key === client);
-    if (!disabledFeatures || !~disabledFeatures.indexOf('scriptCreateTable')) {
+    if ((!disabledFeatures || !~disabledFeatures.indexOf('scriptCreateTable')) && onGetSQLScript) {
       this.contextMenu.append(new MenuItem({
         label: 'Create Statement',
         click: onGetSQLScript.bind(this, database, item, 'CREATE', dbObjectType),

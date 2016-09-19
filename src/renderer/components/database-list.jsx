@@ -7,6 +7,7 @@ export default class DatabaseList extends Component {
     client: PropTypes.string.isRequired,
     databases: PropTypes.array.isRequired,
     isFetching: PropTypes.bool.isRequired,
+    schemasByDatabase: PropTypes.object.isRequired,
     tablesByDatabase: PropTypes.object.isRequired,
     columnsByTable: PropTypes.object.isRequired,
     triggersByTable: PropTypes.object.isRequired,
@@ -35,6 +36,7 @@ export default class DatabaseList extends Component {
       client,
       databases,
       isFetching,
+      schemasByDatabase,
       tablesByDatabase,
       columnsByTable,
       triggersByTable,
@@ -70,6 +72,7 @@ export default class DatabaseList extends Component {
             key={database.name}
             client={client}
             database={database}
+            schemas={schemasByDatabase[database.name]}
             tables={tablesByDatabase[database.name]}
             columnsByTable={columnsByTable[database.name]}
             triggersByTable={triggersByTable[database.name]}
