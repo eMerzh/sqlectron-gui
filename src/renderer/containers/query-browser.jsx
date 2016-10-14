@@ -522,6 +522,7 @@ class QueryBrowserContainer extends Component {
       views,
       routines,
     } = this.props;
+    const currentDB = this.getCurrentQuery() ? this.getCurrentQuery().database : null;
 
     if (connections.waitingPrivateKeyPassphrase) {
       return (
@@ -581,6 +582,7 @@ class QueryBrowserContainer extends Component {
                   ref="databaseList"
                   client={connections.server.client}
                   databases={filteredDatabases}
+                  currentDB={currentDB}
                   isFetching={databases.isFetching}
                   schemasByDatabase={schemas.itemsByDatabase}
                   tablesByDatabase={tables.itemsByDatabase}
