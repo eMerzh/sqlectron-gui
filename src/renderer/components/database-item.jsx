@@ -12,6 +12,7 @@ export default class DatabaseItem extends Component {
   static propTypes = {
     client: PropTypes.string.isRequired,
     database: PropTypes.object.isRequired,
+    schema: PropTypes.object.isRequired,
     item: PropTypes.object.isRequired,
     dbObjectType: PropTypes.string.isRequired,
     style: PropTypes.object,
@@ -45,6 +46,7 @@ export default class DatabaseItem extends Component {
     const {
       client,
       database,
+      schema,
       item,
       dbObjectType,
       onExecuteDefaultQuery,
@@ -55,7 +57,7 @@ export default class DatabaseItem extends Component {
     if (dbObjectType === 'Table' || dbObjectType === 'View') {
       this.contextMenu.append(new MenuItem({
         label: 'Select Rows (with limit)',
-        click: onExecuteDefaultQuery.bind(this, database, item),
+        click: onExecuteDefaultQuery.bind(this, database, schema, item),
       }));
     }
 
@@ -65,7 +67,7 @@ export default class DatabaseItem extends Component {
     if (!disabledFeatures || !~disabledFeatures.indexOf('scriptCreateTable')) {
       this.contextMenu.append(new MenuItem({
         label: 'Create Statement',
-        click: onGetSQLScript.bind(this, database, item, 'CREATE', dbObjectType),
+        click: onGetSQLScript.bind(this, database, schema, item, 'CREATE', dbObjectType),
       }));
     }
 
@@ -81,7 +83,7 @@ export default class DatabaseItem extends Component {
       actionTypes.forEach(actionType => {
         this.contextMenu.append(new MenuItem({
           label: labelsByTypes[actionType],
-          click: onGetSQLScript.bind(this, database, item, actionType, dbObjectType),
+          click: onGetSQLScript.bind(this, database, schema, item, actionType, dbObjectType),
         }));
       });
     }
@@ -92,7 +94,7 @@ export default class DatabaseItem extends Component {
   }
 
   renderSubItems(table) {
-    const { columnsByTable, triggersByTable, database } = this.props;
+    const { columnsByTable, triggersByTable, database, schema } = this.props;
 
     if (!columnsByTable || !columnsByTable[table]) {
       return null;
@@ -109,22 +111,24 @@ export default class DatabaseItem extends Component {
           title="Columns"
           table={table}
           itemsByTable={columnsByTable}
+          schema={schema}
           database={database} />
         <TableSubmenu
           collapsed
           title="Triggers"
           table={table}
           itemsByTable={triggersByTable}
+          schema={schema}
           database={database} />
       </div>
     );
   }
 
   render() {
-    const { database, item, style, onSelectItem, dbObjectType } = this.props;
+    const { database, schema, item, style, onSelectItem, dbObjectType } = this.props;
     const hasChildElements = !!onSelectItem;
     const onSingleClick = hasChildElements
-      ? () => { onSelectItem(database, item); this.toggleTableCollapse(); }
+      ? () => { onSelectItem(database, schema, item); this.toggleTableCollapse(); }
       : () => {};
 
     const collapseCssClass = this.state.tableCollapsed ? 'down' : 'right';

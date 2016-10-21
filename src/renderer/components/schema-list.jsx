@@ -1,14 +1,15 @@
 import React, { Component, PropTypes } from 'react';
-import DatabaseListItem from './database-list-item.jsx';
+import SchemaListItem from './schema-list-item.jsx';
 
 
-export default class DatabaseList extends Component {
+export default class SchemaList extends Component {
   static propTypes = {
     client: PropTypes.string.isRequired,
-    databases: PropTypes.array.isRequired,
+    database: PropTypes.object.isRequired,
+    schemas: PropTypes.array.isRequired,
     isFetching: PropTypes.bool.isRequired,
     schemasByDatabase: PropTypes.object.isRequired,
-    tablesByDatabase: PropTypes.object.isRequired,
+    tables: PropTypes.object.isRequired,
     columnsByTable: PropTypes.object.isRequired,
     triggersByTable: PropTypes.object.isRequired,
     viewsByDatabase: PropTypes.object.isRequired,
@@ -28,17 +29,18 @@ export default class DatabaseList extends Component {
     this.state = {};
   }
 
-  focus(database) {
-    this.refs[database].focus();
+  focus(schema) {
+    this.refs[schema].focus();
   }
 
   render() {
     const {
       client,
-      databases,
+      database,
+      schemas,
       isFetching,
-      schemasByDatabase,
-      tablesByDatabase,
+      //schemasByDatabase,
+      tables,
       columnsByTable,
       triggersByTable,
       viewsByDatabase,
@@ -46,11 +48,10 @@ export default class DatabaseList extends Component {
       proceduresByDatabase,
       onExecuteDefaultQuery,
       onSelectTable,
-      onSelectDatabase,
       onGetSQLScript,
-      onRefreshDatabase,
+//      onRefreshDatabase,
       onMissingMetaData,
-      onShowDiagramModal,
+  //    onShowDiagramModal,
     } = this.props;
 
     if (isFetching) {
@@ -59,36 +60,34 @@ export default class DatabaseList extends Component {
       );
     }
 
-    if (!databases.length) {
+    if (!schemas.length) {
       return (
         <div className="ui grey item">No results found</div>
       );
     }
-
     return (
       <div className="item" style={{ padding: 0 }}>
-      <div> woo</div>
+      Schema:
       {
-        databases.map(database => (
-          <DatabaseListItem
-            ref={database.name}
-            key={database.name}
+        schemas.map(schema => (
+          <SchemaListItem
+            ref={schema.name}
+            key={schema.name}
             client={client}
             database={database}
-            schemas={schemasByDatabase[database.name]}
-            tables={tablesByDatabase[database.name]}
-            columnsByTable={columnsByTable[database.name]}
-            triggersByTable={triggersByTable[database.name]}
-            views={viewsByDatabase[database.name]}
-            functions={functionsByDatabase[database.name]}
-            procedures={proceduresByDatabase[database.name]}
+            schema={schema}
+            tables={(tables || {})[schema.name]}
+            columnsByTable={(columnsByTable || {})[schema.name]}
+            triggersByTable={(triggersByTable || {})[schema.name]}
+            views={(viewsByDatabase || {})[schema.name]}
+            functions={(functionsByDatabase || {})[schema.name]}
+            procedures={(proceduresByDatabase || {})[schema.name]}
             onExecuteDefaultQuery={onExecuteDefaultQuery}
             onSelectTable={onSelectTable}
-            onSelectDatabase={onSelectDatabase}
             onGetSQLScript={onGetSQLScript}
-            onRefreshDatabase={onRefreshDatabase}
             onMissingMetaData={onMissingMetaData}
-            onShowDiagramModal={onShowDiagramModal} />
+           />
+
         ))
       }
       </div>

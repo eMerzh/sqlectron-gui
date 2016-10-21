@@ -14,29 +14,30 @@ export function selectTablesForDiagram(tables) {
 
 export function fetchTablesIfNeeded (database, schema) {
   return (dispatch, getState) => {
-    if (shouldFetchTables(getState(), database)) {
+    if (shouldFetchTables(getState(), database, schema)) {
       dispatch(fetchTables(database, schema));
     }
   };
 }
 
 
-function shouldFetchTables (state, database) {
+function shouldFetchTables (state, database, schema) {
   const tables = state.tables;
   if (!tables) return true;
   if (tables.isFetching) return false;
   if (!tables.itemsByDatabase[database]) return true;
+  if (!tables.itemsByDatabase[database][schema]) return true;
   return tables.didInvalidate;
 }
 
 
 function fetchTables (database, schema) {
   return async (dispatch, getState) => {
-    dispatch({ type: FETCH_TABLES_REQUEST, database });
+    dispatch({ type: FETCH_TABLES_REQUEST, database, schema });
     try {
       const dbConn = getCurrentDBConn(getState());
       const tables = await dbConn.listTables(schema);
-      dispatch({ type: FETCH_TABLES_SUCCESS, database, tables });
+      dispatch({ type: FETCH_TABLES_SUCCESS, database, schema, tables });
     } catch (error) {
       dispatch({ type: FETCH_TABLES_FAILURE, error });
     }

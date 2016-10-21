@@ -13,6 +13,7 @@ export default class DbMetadataList extends Component {
   static propTypes = {
     title: PropTypes.string.isRequired,
     client: PropTypes.string.isRequired,
+    schema: PropTypes.object.isRequired,
     items: PropTypes.array,
     columnsByTable: PropTypes.object,
     triggersByTable: PropTypes.object,
@@ -67,6 +68,7 @@ export default class DbMetadataList extends Component {
       onSelectItem,
       items,
       database,
+      schema,
       onGetSQLScript,
     } = this.props;
 
@@ -94,6 +96,7 @@ export default class DbMetadataList extends Component {
           key={item.name}
           client={client}
           database={database}
+          schema={schema}
           item={item}
           dbObjectType={this.props.title.slice(0, -1)}
           style={cssStyle}

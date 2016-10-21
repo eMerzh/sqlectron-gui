@@ -46,10 +46,14 @@ export default function (state = INITIAL_STATE, action) {
           ...state.columnsByTable,
           [action.database]: {
             ...state.columnsByTable[action.database],
-            [action.table]: action.columns.map(column => ({
-              name: column.columnName,
-              dataType: column.dataType,
-            })),
+            [action.schema]: {
+              ...(state.columnsByTable[action.database] ?
+                 state.columnsByTable[action.database][action.schema] : []),
+              [action.table]: action.columns.map(column => ({
+                name: column.columnName,
+                dataType: column.dataType,
+              })),
+            },
           },
         },
         error: null,

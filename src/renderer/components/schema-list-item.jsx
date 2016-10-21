@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import DatabaseListItemMetatada from './database-list-item-metadata.jsx';
 import DatabaseFilter from './database-filter.jsx';
-import SchemaList from './schema-list.jsx';
 import { remote } from 'electron'; // eslint-disable-line import/no-unresolved
 
 
@@ -24,10 +23,10 @@ const STYLE = {
 };
 
 
-export default class DatabaseListItem extends Component {
+export default class SchemaListItem extends Component {
   static propTypes = {
     client: PropTypes.string.isRequired,
-    schemas: PropTypes.array,
+    schema: PropTypes.object.isRequired,
     tables: PropTypes.object,
     columnsByTable: PropTypes.object,
     triggersByTable: PropTypes.object,
@@ -51,7 +50,7 @@ export default class DatabaseListItem extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.contextMenu || !this.isMetadataLoaded(nextProps)) {
+    /*if (this.contextMenu || !this.isMetadataLoaded(nextProps)) {
       return;
     }
 
@@ -63,7 +62,7 @@ export default class DatabaseListItem extends Component {
     this.contextMenu.append(new MenuItem({
       label: 'Show Database Diagram',
       click: this.props.onShowDiagramModal.bind(this, nextProps.database),
-    }));
+    }));*/
   }
 
   onContextMenu(event) {
@@ -73,16 +72,12 @@ export default class DatabaseListItem extends Component {
     }
   }
 
+
   onFilterChange(value) {
     this.setState({ filter: value });
   }
 
-  onHeaderDoubleClick(database) {
-    if (!this.isMetadataLoaded()) {
-      this.props.onSelectDatabase(database);
-      return;
-    }
-
+  onHeaderClick(schema) {
     this.toggleCollapse();
   }
 
@@ -102,27 +97,27 @@ export default class DatabaseListItem extends Component {
 
   isMetadataLoaded(props) {
     const { tables, views, functions, procedures } = (props || this.props);
-    return tables && views && functions && procedures;
+    return tables; // && views && functions && procedures;
   }
 
   toggleCollapse() {
     this.setState({ collapsed: !this.state.collapsed });
   }
 
-  renderHeader(database) {
+  renderHeader(schema) {
     const collapseCssClass = !this.isMetadataLoaded() || this.state.collapsed ? 'right' : 'down';
 
     return (
       <span
         className="header"
-        onDoubleClick={() => this.onHeaderDoubleClick(database)}
+        onDoubleClick={() => this.onHeaderClick(schema)}
         onContextMenu={::this.onContextMenu}
         style={STYLE.database}>
         <i className={`${collapseCssClass} triangle icon`}
           style={{ cursor: 'pointer' }}
-          onClick={() => this.onHeaderDoubleClick(database)}></i>
+          onClick={() => this.onHeaderClick(schema)}></i>
         <i className="database icon"></i>
-        {database.name}
+        {schema.name}
       </span>
     );
   }
@@ -131,7 +126,7 @@ export default class DatabaseListItem extends Component {
     const { filter } = this.state;
     const {
       client,
-      schemas,
+      schema,
       tables,
       columnsByTable,
       triggersByTable,
@@ -145,28 +140,34 @@ export default class DatabaseListItem extends Component {
       onMissingMetaData,
     } = this.props;
 
+    if (!database) {
+      return (
+        <div className="ui grey item">loading</div>
+      );
+    }
+
     let filteredSchemas;
-    //let filteredTables;
+    let filteredTables;
     let filteredViews;
     let filteredFunctions;
     let filteredProcedures;
 
+    if(! tables || ! tables[schema.name]) {
+      onMissingMetaData(database.name, schema.name);
+    }
     const cssStyleItems = {};
     const isMetadataLoaded = this.isMetadataLoaded();
     if (this.state.collapsed || !isMetadataLoaded) {
       cssStyleItems.display = 'none';
     } else {
-      filteredSchemas = this.filterItems(filter, schemas);
       //filteredTables = this.filterItems(filter, tables);
-      filteredViews = this.filterItems(filter, views);
-      filteredFunctions = this.filterItems(filter, functions);
-      filteredProcedures = this.filterItems(filter, procedures);
+      //filteredViews = this.filterItems(filter, views);
+      //filteredFunctions = this.filterItems(filter, functions);
+      //filteredProcedures = this.filterItems(filter, procedures);
     }
-    filteredSchemas = filteredSchemas || schemas || [];
-
     return (
       <div className="item">
-        {this.renderHeader(database)}
+        {this.renderHeader(schema)}
         <div className="ui list" style={cssStyleItems}>
           <div className="item" style={cssStyleItems}>
             <DatabaseFilter
@@ -175,78 +176,44 @@ export default class DatabaseListItem extends Component {
               isFetching={!isMetadataLoaded}
               onFilterChange={::this.onFilterChange} />
           </div>
-          <SchemaList
-            database={database}
-            schemas={filteredSchemas}
-            tables={tables}
+          <DatabaseListItemMetatada
+            title="Tables"
             client={client}
-            tables={tables}
+            schema={schema}
+            items={tables}
             columnsByTable={columnsByTable}
             triggersByTable={triggersByTable}
-            views={views}
-            functions={functions}
-            procedures={procedures}
+            database={database}
             onExecuteDefaultQuery={onExecuteDefaultQuery}
-            onSelectTable={onSelectTable}
-            onGetSQLScript={onGetSQLScript}
-            onMissingMetaData={onMissingMetaData}
-          />
-          </div>
+            onSelectItem={onSelectTable}
+            onGetSQLScript={onGetSQLScript} />
+          <DatabaseListItemMetatada
+            collapsed
+            title="Views"
+            client={client}
+            schema={schema}
+            items={filteredViews || views}
+            database={database}
+            onExecuteDefaultQuery={onExecuteDefaultQuery}
+            onGetSQLScript={onGetSQLScript} />
+          <DatabaseListItemMetatada
+            collapsed
+            title="Functions"
+            client={client}
+            schema={schema}
+            items={filteredFunctions || functions}
+            database={database}
+            onGetSQLScript={onGetSQLScript} />
+          <DatabaseListItemMetatada
+            collapsed
+            title="Procedures"
+            client={client}
+            schema={schema}
+            items={filteredProcedures || procedures}
+            database={database}
+            onGetSQLScript={onGetSQLScript} />
         </div>
-      );
-          {/*
-          {filteredSchemas.map((schema) => {
-            let filteredTables;
-            //if (this.state.collapsed || !isMetadataLoaded) {
-            //  cssStyleItems.display = 'none';
-            //} else {
-            //  filteredTables = this.filterItems(filter, (tables || {})[schema.name]);
-            //}
-            if( (tables || {})[schema.name] === undefined) {
-              onMissingMetaData(database.name, schema.name);
-            }
-            //onMissingMetaData
-            return (<div key={schema.name}>
-                <div>{schema.name}</div>
-                <DatabaseListItemMetatada
-                  title="Tables"
-                  client={client}
-                  schema={schema.name}
-                  items={(filteredTables || tables || {})[schema.name]}
-                  columnsByTable={columnsByTable}
-                  triggersByTable={triggersByTable}
-                  database={database}
-                  onExecuteDefaultQuery={onExecuteDefaultQuery}
-                  onSelectItem={onSelectTable}
-                  onGetSQLScript={onGetSQLScript} />
-                {/*<DatabaseListItemMetatada
-                  collapsed
-                  title="Views"
-                  client={client}
-                  schema={schema}
-                  items={filteredViews || views}
-                  database={database}
-                  onExecuteDefaultQuery={onExecuteDefaultQuery}
-                  onGetSQLScript={onGetSQLScript} />
-                <DatabaseListItemMetatada
-                  collapsed
-                  title="Functions"
-                  client={client}
-                  schema={schema}
-                  items={filteredFunctions || functions}
-                  database={database}
-                  onGetSQLScript={onGetSQLScript} />
-                <DatabaseListItemMetatada
-                  collapsed
-                  title="Procedures"
-                  client={client}
-                  schema={schema}
-                  items={filteredProcedures || procedures}
-                  database={database}
-                  onGetSQLScript={onGetSQLScript} />
-                  * /}
-              </div>);
-          })
-          */ }
+        </div>
+    );
   }
 }

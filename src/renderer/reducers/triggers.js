@@ -29,7 +29,11 @@ export default function (state = INITIAL_STATE, action) {
           ...state.triggersByTable,
           [action.database]: {
             ...state.triggersByTable[action.database],
-            [action.table]: action.triggers.map(name => ({ name })),
+            [action.schema]: {
+              ...(state.triggersByTable[action.database] ?
+                  state.triggersByTable[action.database][action.schema] : []),
+              [action.table]: action.triggers.map(name => ({ name })),
+            },
           },
         },
         error: null,

@@ -144,10 +144,9 @@ class QueryBrowserContainer extends Component {
     dispatch(ConnActions.connect(params.id, database.name));
   }
 
-  onExecuteDefaultQuery(database, table) {
-    const schema = this.props.connections.server.schema;
+  onExecuteDefaultQuery(database, schema, table) {
     this.props.dispatch(
-      QueryActions.executeDefaultSelectQueryIfNeeded(database.name, table.name, schema)
+      QueryActions.executeDefaultSelectQueryIfNeeded(database.name, table.name, schema.name)
     );
   }
 
@@ -161,16 +160,14 @@ class QueryBrowserContainer extends Component {
     dispatch(ConnActions.connect(params.id, null, false, password));
   }
 
-  onSelectTable(database, table) {
-    const schema = this.props.connections.server.schema;
-    this.props.dispatch(fetchTableColumnsIfNeeded(database.name, table.name, schema));
-    this.props.dispatch(fetchTableTriggersIfNeeded(database.name, table.name, schema));
+  onSelectTable(database, schema, table) {
+    this.props.dispatch(fetchTableColumnsIfNeeded(database.name, table.name, schema.name));
+    this.props.dispatch(fetchTableTriggersIfNeeded(database.name, table.name, schema.name));
   }
 
-  onGetSQLScript(database, item, actionType, objectType) {
-    const schema = this.props.connections.server.schema;
+  onGetSQLScript(database, schema, item, actionType, objectType) {
     this.props.dispatch(
-      getSQLScriptIfNeeded(database.name, item.name, actionType, objectType, schema)
+      getSQLScriptIfNeeded(database.name, item.name, actionType, objectType, schema.name)
     );
   }
 
@@ -199,6 +196,11 @@ class QueryBrowserContainer extends Component {
   onRefreshDatabase(database) {
     const { dispatch } = this.props;
     dispatch(DbAction.refreshDatabase(database));
+  }
+
+  onMissingMetaData(database, schema) {
+    const { dispatch } = this.props;
+    dispatch(fetchTablesIfNeeded(database, schema));
   }
 
   onShowDiagramModal(database) {
@@ -450,7 +452,7 @@ class QueryBrowserContainer extends Component {
             database={currentDB}
             databases={databases.items}
             schemas={schemas.itemsByDatabase[query.database]}
-            tables={tables.itemsByDatabase[query.database]}
+            tables={(tables.itemsByDatabase[query.database] || {}).public}
             columnsByTable={columns.columnsByTable[query.database]}
             triggersByTable={triggers.triggersByTable[query.database]}
             views={views.viewsByDatabase[query.database]}
@@ -594,6 +596,7 @@ class QueryBrowserContainer extends Component {
                   onSelectTable={::this.onSelectTable}
                   onGetSQLScript={::this.onGetSQLScript}
                   onRefreshDatabase={::this.onRefreshDatabase}
+                  onMissingMetaData={::this.onMissingMetaData}
                   onShowDiagramModal={::this.onShowDiagramModal} />
               </div>
             </ResizableBox>
